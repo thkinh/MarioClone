@@ -1,0 +1,3 @@
+Texture TexStand Assets/Textures/mario.png 
+Font MagicRetro Assets/Fonts/MagicRetro.ttf
+Animation Stand TextStand 1 0
