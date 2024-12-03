@@ -57,6 +57,7 @@ void Assets::addFont(const std::string& name, const std::string& path)
 void Assets::addTexture(const std::string& name, const std::string& path)
 {
     m_texture[name].loadFromFile(path);
+    std::cout << "Loaded this texture " << name << " from " << path << "\n";
 }
 
 void Assets::addAnimation(const std::string& animation_name, const std::string& tex_name, size_t framecount, size_t speed)
@@ -81,4 +82,14 @@ const sf::Font& Assets::getFont(const std::string& name) const
         static sf::Font dummyFont;
         return dummyFont;
     }
+}
+
+sf::Texture& Assets::getTexture(const std::string& name) 
+{
+    return m_texture[name];
+}
+
+Animation& Assets::getAnimation(const std::string& name) 
+{
+    return m_animation[name];
 }

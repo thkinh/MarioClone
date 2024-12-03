@@ -17,7 +17,7 @@ protected:
 	std::string m_levelpath;
 	PlayerConfig m_playerConfig;
 	
-	bool m_drawTexture = false;
+	bool m_drawTexture = true;
 	bool m_drawCollision = true;
 	bool drawGrid = false;
 
@@ -33,9 +33,9 @@ public:
 	void SpawnPlayer();
 	void SpawnBullet();
 	void sMovement();
-	//void sLifeSpan();
+	void sLifeSpan();
 	void sCollision();
-	//void sAnimation();
+	void sAnimation();
 	void SpawnTile(float gridx, float gridy);
 
 

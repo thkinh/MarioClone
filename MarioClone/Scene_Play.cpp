@@ -15,14 +15,15 @@ void Scene_Play::init(const std::string& levelPath)
 	m_gridText.setFont(Play_Font);
 	registerAction(sf::Keyboard::P, "PAUSE");
 	registerAction(sf::Keyboard::Escape, "QUIT");
-	//registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
-	registerAction(sf::Keyboard::C, "TOGGLE_COLLISON");
+	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
+	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
 	registerAction(sf::Keyboard::G, "TOGGLE_GRID");
 	registerAction(sf::Keyboard::W, "UP");
 	//registerAction(sf::Keyboard::Space, "UP");
 	registerAction(sf::Keyboard::A, "LEFT");
 	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::D, "RIGHT");
+	registerAction(sf::Keyboard::LShift, "RUN");
 	//registerAction(sf::Keyboard::G, "TOGGLE_GRID");
 
 
@@ -35,15 +36,6 @@ void Scene_Play::init(const std::string& levelPath)
 
 	LoadLevel(levelPath);
 	SpawnPlayer();
-	SpawnTile(1, 2);
-	SpawnTile(2, 2);
-	SpawnTile(3, 2);
-	SpawnTile(4, 3);
-	SpawnTile(5, 3);
-	SpawnTile(6, 6);
-	SpawnTile(6, 2);
-	SpawnTile(7, 2);
-	SpawnTile(5, 6);
 	//std::cout << "Current player position: (" << m_player->getComponent<CTransform>().pos.x << ", " 
 	//	<< m_player->getComponent<CTransform>().pos.y << ")\n";
 
@@ -70,9 +62,15 @@ void Scene_Play::LoadLevel(const std::string& filename)
 	std::string var;
 	while (file>>var)
 	{
+		if (var == "Tile")
+		{
+			int x, y;
+			file >> x >> y;
+			SpawnTile(x, y);
+			continue;
+		}
 		if (var == "Player")
 		{
-			std::cout << "Loading player\n";
 			file >> m_playerConfig.X >> m_playerConfig.Y >> m_playerConfig.CX >> m_playerConfig.CY
 				>> m_playerConfig.SPEED >> m_playerConfig.JUMP >> m_playerConfig.MAXSPEED >> m_playerConfig.GRAVITY;
 		
@@ -85,11 +83,15 @@ void Scene_Play::LoadLevel(const std::string& filename)
 void Scene_Play::SpawnPlayer()
 {
 	m_player = m_entitiesManger.addEntity("player");
-	m_player->addComponent<CBoundingBox>(Vec2D(48, 48));
+	m_player->addComponent<CBoundingBox>(Vec2D(48,48));
 	m_player->addComponent<CTransform>(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
 	m_player->addComponent<CInput>();
 	m_player->addComponent<CGravity>(m_playerConfig.GRAVITY);
 	m_player->addComponent<CState>();
+	m_player->addComponent<CAnimation>();
+	m_player->getComponent<CTransform>().scale = { 2.5f,2.5f};
+	m_player->getComponent<CAnimation>().anmt = m_game->assets().getAnimation("Stand");
+
 }
 
 void Scene_Play::SpawnBullet()
@@ -104,7 +106,10 @@ void Scene_Play::SpawnTile(float gridx, float gridy)
 	auto tile = m_entitiesManger.addEntity("tile");
 	tile->addComponent<CBoundingBox>(Vec2D(m_gridsize.x, m_gridsize.y));
 	tile->addComponent<CTransform>(gridToMidPixel(gridx,gridy,tile));
-	std::cout << "Spawned a tile at << (" << tile->getComponent<CTransform>().pos.x << "," << tile->getComponent<CTransform>().pos.y << ")\n";
+	//std::cout << "Spawned a tile at << (" << tile->getComponent<CTransform>().pos.x << "," << tile->getComponent<CTransform>().pos.y << ")\n";
+	tile->getComponent<CTransform>().scale = Vec2D(1.34f, 1.34f);
+	tile->addComponent<CAnimation>();
+	tile->getComponent<CAnimation>().anmt = m_game->assets().getAnimation("TileDust");
 }
 
 
@@ -117,22 +122,18 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.name() == "TOGGLE_GRID") { drawGrid = !drawGrid; }
 		else if (action.name() == "QUIT") { onEnd(); }
 		//Movements
-		else if (action.name() == "UP" )
-		{
-				 m_player->getComponent<CInput>().up = true;
-		}
+		else if (action.name() == "UP"){ m_player->getComponent<CInput>().up = true;}
 		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = true;  }
 		else if (action.name() == "LEFT") { m_player->getComponent<CInput>().left = true; }
+		else if (action.name() == "RUN") { m_player->getComponent<CInput>().running = true; }
 
 	}
 	else if (action.type() == "END")
 	{
-		if (action.name() == "UP") 
-		{
-			m_player->getComponent<CInput>().up = false;
-		}
+		if (action.name() == "UP") {m_player->getComponent<CInput>().up = false;}
 		if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = false; }
-		if (action.name() == "LEFT") { m_player->getComponent<CInput>().left = false; }
+		else if (action.name() == "LEFT") { m_player->getComponent<CInput>().left = false; }
+		else if (action.name() == "RUN") { m_player->getComponent<CInput>().running = false; }
 		//if (action.name() == "DOWN") { m_player->getComponent<CInput>().down = 0; }
 	}
 }
@@ -140,26 +141,39 @@ void Scene_Play::sDoAction(const Action& action)
 void Scene_Play::sMovement()
 {
 	Vec2D player_velocity(0, m_player->getComponent<CTransform>().velocity.y);
-	int current_state = m_player->getComponent<CState>().state;
-	if (m_player->getComponent<CInput>().up == true && current_state == 0)
+	int& current_state = m_player->getComponent<CState>().state;
+	if (m_player->getComponent<CInput>().up == false && current_state == 1)
 	{
+		current_state = 0;
+	}
+	if (m_player->getComponent<CInput>().up && current_state!=2 && current_state != 1)
+	{
+		std::cout << "Player state: " << current_state<<"\n";
 		player_velocity.y += -12;
-		if (player_velocity.y <= -1 * m_playerConfig.MAXSPEED || player_velocity.y >= 0)
+		current_state = 3; //jumping
+		if (player_velocity.y <= -1 * m_playerConfig.MAXSPEED)
 		{
-			m_player->getComponent<CState>().state = 2; //reached its maxspeed, falling
+			std::cout << "MAXSPEED REACHED\n";
+			current_state = 2; //reached its maxspeed, falling
 		}
-
 	}
 	if (m_player->getComponent<CInput>().right)
 	{
 		player_velocity.x = 7;
+		m_player->getComponent<CTransform>().scale.x = 2.5;
 	}
 	if (m_player->getComponent<CInput>().left)
 	{
 		player_velocity.x = -7;
+		m_player->getComponent<CTransform>().scale.x = -2.5;
 	}
 	//std::cout <<"\n"<< m_playerConfig.MAXSPEED;
-
+	if (m_player->getComponent<CInput>().running == true)
+	{
+		current_state = 4; // player is running
+		player_velocity.x *= 2;
+		
+	}
 
 	m_player->getComponent<CTransform>().velocity = player_velocity;
 
@@ -180,7 +194,7 @@ void Scene_Play::sCollision()
 	for (auto& t : m_entitiesManger.getEntity("tile"))
 	{
 		Vec2D overlap = Physics::GetOverLap(t, m_player);
-		auto& Ppos = m_player->getComponent<CTransform>();
+		auto& PlayerPos = m_player->getComponent<CTransform>();
 		if (overlap.y < 0 && overlap.x < 0)
 		{
 			Vec2D Pre_overlap = Physics::GetPreviousOverLap(m_player,t);
@@ -190,15 +204,18 @@ void Scene_Play::sCollision()
 			if (Pre_overlap.y >= 0)
 			{
 				//This means the overlap caused by the "y" direction
-				if (Ppos.pos.y >= Ppos.prevPos.y)
+				if (PlayerPos.pos.y >= PlayerPos.prevPos.y)
 				{
 					//this means the overlap occured by the player moving down_ward
 					m_player->getComponent<CTransform>().pos.y += overlap.y;
 					//the overlap happened, so overlap.y or overlap,x is always negative
 					m_player->getComponent<CTransform>().velocity.y = 0;
-					m_player->getComponent<CState>().state = 0;
+					if (m_player->getComponent<CState>().state != 0)
+					{
+						m_player->getComponent<CState>().state = 1;
+					}
 				}
-				else if (Ppos.pos.y < Ppos.prevPos.y)
+				else if (PlayerPos.pos.y < PlayerPos.prevPos.y)
 				{
 					//this means the overlap occured by the player moving up_ward
 					m_player->getComponent<CTransform>().pos.y -= overlap.y;
@@ -213,14 +230,14 @@ void Scene_Play::sCollision()
 				//std::cout << "There's an horizontal overlap\n";
 				//std::cout << "(" << t->getComponent<CTransform>().pos.x << "," << t->getComponent<CTransform>().pos.y << ")\n";
 
-				if (Ppos.pos.x > Ppos.prevPos.x)
+				if (PlayerPos.pos.x > PlayerPos.prevPos.x)
 				{
 					//this means the overlap occured by the player moving from left to right
 					m_player->getComponent<CTransform>().pos.x += overlap.x ;
 					//the overlap happened, so overlap.y or overlap,x is always negative
 					m_player->getComponent<CTransform>().velocity.x = 0;
 				}
-				else if (Ppos.pos.x < Ppos.prevPos.x)
+				else if (PlayerPos.pos.x < PlayerPos.prevPos.x)
 				{			
 					//this means the overlap occured by the player moving from right to left
 					m_player->getComponent<CTransform>().pos.x -= overlap.x;
@@ -233,13 +250,48 @@ void Scene_Play::sCollision()
 }
 
 
+void Scene_Play::sLifeSpan()
+{
+	if (m_player->getComponent<CTransform>().pos.y > m_game->window().getSize().y)
+	{
+		m_player->destroy();
+		SpawnPlayer();
+	}
+
+}
+
+void Scene_Play::sAnimation()
+{
+	int& playerstate = m_player->getComponent<CState>().state;
+	CAnimation& player_animation = m_player->getComponent<CAnimation>();
+
+	if (playerstate == 1  || playerstate == 0) // just land on ground
+	{
+		player_animation.anmt = m_game->assets().getAnimation("Stand");
+	}
+	else if (playerstate == 3 || playerstate == 2)
+	{
+		player_animation.anmt = m_game->assets().getAnimation("Jump");
+	}
+	else if (playerstate == 4)
+	{
+		player_animation.anmt = m_game->assets().getAnimation("Run");
+	}
+	for (auto& e : m_entitiesManger.getEntity())
+	{
+		e->getComponent<CAnimation>().anmt.update();
+	}
+
+}
+
+
 void Scene_Play::update()
 {
 	m_entitiesManger.update();
 	sMovement();
-	//sLifeSpan();
+	sLifeSpan();
 	sCollision();
-	//sAnimation();
+	sAnimation();
 	sRender();
 }
 
@@ -254,38 +306,26 @@ void Scene_Play::sRender ()
 	m_game->window().setView(view);
 
 
+	//drawTexture & animation
+	if (m_drawTexture)
+	{
+		for (auto& e : m_entitiesManger.getEntity()) 
+		{
+			auto& transform = e->getComponent<CTransform>();
+			if (e->hasComponent<CAnimation>())
+			{
+				auto& animation = e->getComponent<CAnimation>().anmt;
+				animation.getSprite().setRotation(transform.angle);
+				animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
+				animation.getSprite().setScale(transform.scale.x, transform.scale.y);
+				m_game->window().draw(animation.getSprite());
+			}
+		}
+	}
 
 	//Draw grid
 	if (drawGrid)
 	{
-		//int wWidth = (int)width();
-		//int wHeight = (int)height();
-		//sf::VertexArray lines(sf::Lines);
-		//for (float i = 0; i < (float)wWidth; i += m_gridsize.x)
-		//{
-		//	sf::Vertex vertical_start(sf::Vector2f(i, 0));
-		//	sf::Vertex vertical_end(sf::Vector2f(i, (float)wHeight));
-		//	lines.append(vertical_start);
-		//	lines.append(vertical_end);
-		//}
-
-		//for (int j = 0; j < (float)wHeight; j += m_gridsize.y)
-		//{
-		//	for (int k = 0; k < wWidth; k+=64)
-		//	{
-		//		std::string cell_name;
-		//		cell_name = std::to_string(j/64) +","+ std::to_string(k/64);
-		//		m_gridText.setCharacterSize(13);
-		//		m_gridText.setString(cell_name);
-		//		m_gridText.setPosition(j+2,height() - k - m_gridsize.y + 3);
-		//		m_game->window().draw(m_gridText);
-		//	}
-		//	sf::Vertex horizontal_start(sf::Vector2f(0, j));
-		//	sf::Vertex horizontal_end(sf::Vector2f((float)wWidth, j));
-		//	lines.append(horizontal_start);
-		//	lines.append(horizontal_end);
-	/*	}
-		m_game->window().draw(lines);*/
 		float leftX = m_game->window().getView().getCenter().x - width() / 2;
 		float rightX = leftX + width() + m_gridsize.x;
 		float nextGridX = leftX - ((int)leftX % (int)m_gridsize.x);

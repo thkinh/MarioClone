@@ -12,7 +12,7 @@ void Scene_Menu::init()
 	Menu_font = m_game->assets().getFont("MagicRetro");
 	m_MenuText.setFont(Menu_font);
 	m_MenuText.setCharacterSize(34);
-	m_MenuText.setString("Please work");
+	m_MenuText.setString("\n\nMARIO	    CLONE    2099");
 }
 
 Scene_Menu::Scene_Menu(GameEngine* gameEngine):

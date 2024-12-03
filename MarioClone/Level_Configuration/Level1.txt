@@ -1,1 +1,29 @@
-Player 2 6 48 48 3 6 30 4 60
+Tile 0 2
+Tile 1 2
+Tile 2 2
+Tile 3 2
+Tile 4 2
+Tile 5 2
+Tile 4 3
+Tile 5 3
+Tile 6 6
+Tile 6 2
+Tile 7 2
+Tile 8 2
+Tile 9 2
+Tile 8 4
+Tile 9 4
+Tile 10 2
+Tile 11 2
+Tile 12 2
+Tile 13 2
+Tile 14 2
+Tile 16 2
+Tile 15 2
+Tile 17 2
+Tile 18 2
+Tile 19 2
+Tile 20 2
+Tile 21 2
+Tile 5 6
+Player 2 6 48 48 3 6 30 3 60

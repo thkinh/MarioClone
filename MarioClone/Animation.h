@@ -15,6 +15,7 @@ public:
 	Animation(const std::string& name, const sf::Texture& t);
 	Animation(const std::string& name, const sf::Texture& t, size_t framecount, size_t speed);
 
+	void setSize(float sizex, float sizey);
 	void update();
 	bool hasEnded() const;
 	const std::string& getName() const;

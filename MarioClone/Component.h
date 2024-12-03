@@ -51,6 +51,7 @@ public:
 	bool left = false;
 	bool action1 = false;
 	bool canJump = true;	
+	bool running = false;
 	CInput() = default;
 };
 
@@ -74,7 +75,7 @@ public:
 class CAnimation : public Component
 {
 public:
-	int animation = 0;
+	Animation anmt ;
 	CAnimation() {};
 	
 };
@@ -94,9 +95,10 @@ class CState : public Component
 {
 public:
 	//0 = on ground, can jump
-	//1 = just land on ground
+	//1 = just land on ground, cannot jump
 	//2 = falling
 	//3 = airing
+	//4 = running
 	int state = 0;
 	CState() {};
 	CState(int s) :state(s) {}

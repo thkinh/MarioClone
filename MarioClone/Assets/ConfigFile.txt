@@ -1,3 +1,10 @@
-Texture TexStand Assets/Textures/mario.png 
+Texture TextStand Assets/Textures/LongMage.png 
+Texture TextJump Assets/Textures/JumpMage.png
+Texture TextRun Assets/Textures/Run.png  
+Texture TextTile Assets/Textures/Terrain.png
+Texture TextDust Assets/Textures/Dust.png
 Font MagicRetro Assets/Fonts/MagicRetro.ttf
-Animation Stand TextStand 1 0
+Animation Stand TextStand 12 0
+Animation Jump TextJump 6 0
+Animation TileDust TextDust 1 0
+Animation Run TextRun 4 0

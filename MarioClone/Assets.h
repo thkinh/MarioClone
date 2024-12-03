@@ -29,8 +29,8 @@ public:
 	////void addSound(name, path);
 	void addFont(const std::string& name, const std::string& path);
 
-	sf::Texture& getTexture() const;
-	sf::Texture& getAnimation() const;
+	sf::Texture& getTexture(const std::string & name) ;
+	Animation& getAnimation(const std::string & name) ;
 	////sf::Texture& getTexture() const;
 	const sf::Font& getFont(const std::string& name) const;
 	void LoadAssets(const std::string& name);
