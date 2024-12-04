@@ -19,12 +19,11 @@ void Scene_Play::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
 	registerAction(sf::Keyboard::G, "TOGGLE_GRID");
 	registerAction(sf::Keyboard::W, "UP");
-	//registerAction(sf::Keyboard::Space, "UP");
+	registerAction(sf::Keyboard::Space, "UP");
 	registerAction(sf::Keyboard::A, "LEFT");
 	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::D, "RIGHT");
 	registerAction(sf::Keyboard::LShift, "RUN");
-	//registerAction(sf::Keyboard::G, "TOGGLE_GRID");
 
 
 	
@@ -83,13 +82,13 @@ void Scene_Play::LoadLevel(const std::string& filename)
 void Scene_Play::SpawnPlayer()
 {
 	m_player = m_entitiesManger.addEntity("player");
-	m_player->addComponent<CBoundingBox>(Vec2D(48,48));
+	m_player->addComponent<CBoundingBox>(Vec2D(m_playerConfig.CX, m_playerConfig.CY));
 	m_player->addComponent<CTransform>(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
 	m_player->addComponent<CInput>();
 	m_player->addComponent<CGravity>(m_playerConfig.GRAVITY);
 	m_player->addComponent<CState>();
 	m_player->addComponent<CAnimation>();
-	m_player->getComponent<CTransform>().scale = { 2.5f,2.5f};
+	m_player->getComponent<CTransform>().scale = {2.5f,2.5f};
 	m_player->getComponent<CAnimation>().anmt = m_game->assets().getAnimation("Stand");
 
 }
@@ -126,15 +125,14 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = true;  }
 		else if (action.name() == "LEFT") { m_player->getComponent<CInput>().left = true; }
 		else if (action.name() == "RUN") { m_player->getComponent<CInput>().running = true; }
-
 	}
 	else if (action.type() == "END")
 	{
 		if (action.name() == "UP") {m_player->getComponent<CInput>().up = false;}
-		if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = false; }
+		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = false; }
 		else if (action.name() == "LEFT") { m_player->getComponent<CInput>().left = false; }
 		else if (action.name() == "RUN") { m_player->getComponent<CInput>().running = false; }
-		//if (action.name() == "DOWN") { m_player->getComponent<CInput>().down = 0; }
+		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().down = false; }
 	}
 }
 
@@ -142,18 +140,30 @@ void Scene_Play::sMovement()
 {
 	Vec2D player_velocity(0, m_player->getComponent<CTransform>().velocity.y);
 	int& current_state = m_player->getComponent<CState>().state;
-	if (m_player->getComponent<CInput>().up == false && current_state == 1)
+	float player_jump_speed = 12;
+	if (current_state == 3)
 	{
-		current_state = 0;
+		player_jump_speed -= 6;
+	}
+	if (m_player->getComponent<CInput>().up == false )
+	{
+		//If player just landed on the ground, only allow them to jump when they release the button
+		if (current_state == 1)
+		{
+			current_state = 0;
+		}
+		//Release the button at mid air won't let them moving at the y direction anymore
+		else if (current_state == 3)
+		{
+			current_state = 2;
+		}
 	}
 	if (m_player->getComponent<CInput>().up && current_state!=2 && current_state != 1)
 	{
-		std::cout << "Player state: " << current_state<<"\n";
-		player_velocity.y += -12;
+		player_velocity.y -= player_jump_speed;
 		current_state = 3; //jumping
-		if (player_velocity.y <= -1 * m_playerConfig.MAXSPEED)
+		if (player_velocity.y <= -30)
 		{
-			std::cout << "MAXSPEED REACHED\n";
 			current_state = 2; //reached its maxspeed, falling
 		}
 	}
@@ -167,17 +177,12 @@ void Scene_Play::sMovement()
 		player_velocity.x = -7;
 		m_player->getComponent<CTransform>().scale.x = -2.5;
 	}
-	//std::cout <<"\n"<< m_playerConfig.MAXSPEED;
 	if (m_player->getComponent<CInput>().running == true)
 	{
 		current_state = 4; // player is running
 		player_velocity.x *= 2;
-		
 	}
-
 	m_player->getComponent<CTransform>().velocity = player_velocity;
-
-
 	for (auto& e : m_entitiesManger.getEntity())
 	{		
 		if (e->getComponent<CGravity>().has)
@@ -227,9 +232,6 @@ void Scene_Play::sCollision()
 			else if (Pre_overlap.x >= 0)
 			{
 				//This means the overlap caused by the "x" direction
-				//std::cout << "There's an horizontal overlap\n";
-				//std::cout << "(" << t->getComponent<CTransform>().pos.x << "," << t->getComponent<CTransform>().pos.y << ")\n";
-
 				if (PlayerPos.pos.x > PlayerPos.prevPos.x)
 				{
 					//this means the overlap occured by the player moving from left to right
