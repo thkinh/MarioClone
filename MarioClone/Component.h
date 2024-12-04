@@ -50,7 +50,6 @@ public:
 	bool right = false;
 	bool left = false;
 	bool action1 = false;
-	bool canJump = true;	
 	bool running = false;
 	CInput() = default;
 };

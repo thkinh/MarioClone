@@ -24,20 +24,14 @@ void Scene_Play::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::D, "RIGHT");
 	registerAction(sf::Keyboard::LShift, "RUN");
-
-
-	
 	//registerAction(sf::Keyboard::P, "Pause");
 	//registerAction(sf::Keyboard::P, "Pause");
-
 	m_gridText.setCharacterSize(14);
 	//m_gridText.setFont(m_game->assets().getFont("THE FONT YOU WANT"));
-
 	LoadLevel(levelPath);
 	SpawnPlayer();
 	//std::cout << "Current player position: (" << m_player->getComponent<CTransform>().pos.x << ", " 
 	//	<< m_player->getComponent<CTransform>().pos.y << ")\n";
-
 }
 
 Vec2D Scene_Play::gridToMidPixel(float gridx, float gridy, std::shared_ptr<Entity> entity)
@@ -90,7 +84,6 @@ void Scene_Play::SpawnPlayer()
 	m_player->addComponent<CAnimation>();
 	m_player->getComponent<CTransform>().scale = {2.5f,2.5f};
 	m_player->getComponent<CAnimation>().anmt = m_game->assets().getAnimation("Stand");
-
 }
 
 void Scene_Play::SpawnBullet()
@@ -128,7 +121,7 @@ void Scene_Play::sDoAction(const Action& action)
 	}
 	else if (action.type() == "END")
 	{
-		if (action.name() == "UP") {m_player->getComponent<CInput>().up = false;}
+			 if (action.name() == "UP") {m_player->getComponent<CInput>().up = false;}
 		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = false; }
 		else if (action.name() == "LEFT") { m_player->getComponent<CInput>().left = false; }
 		else if (action.name() == "RUN") { m_player->getComponent<CInput>().running = false; }
@@ -141,10 +134,7 @@ void Scene_Play::sMovement()
 	Vec2D player_velocity(0, m_player->getComponent<CTransform>().velocity.y);
 	int& current_state = m_player->getComponent<CState>().state;
 	float player_jump_speed = 12;
-	if (current_state == 3)
-	{
-		player_jump_speed -= 6;
-	}
+	player_jump_speed -= (current_state == 3) ? 6 : 0;
 	if (m_player->getComponent<CInput>().up == false )
 	{
 		//If player just landed on the ground, only allow them to jump when they release the button
@@ -153,7 +143,7 @@ void Scene_Play::sMovement()
 			current_state = 0;
 		}
 		//Release the button at mid air won't let them moving at the y direction anymore
-		else if (current_state == 3)
+		if (current_state == 3)
 		{
 			current_state = 2;
 		}
@@ -179,8 +169,8 @@ void Scene_Play::sMovement()
 	}
 	if (m_player->getComponent<CInput>().running == true)
 	{
-		current_state = 4; // player is running
-		player_velocity.x *= 2;
+		//current_state = 4; // player is running
+		player_velocity.x *= 1.55;
 	}
 	m_player->getComponent<CTransform>().velocity = player_velocity;
 	for (auto& e : m_entitiesManger.getEntity())
@@ -299,7 +289,7 @@ void Scene_Play::update()
 
 void Scene_Play::sRender () 
 {
-	m_game->window().clear(sf::Color(50, 50, 150));
+	m_game->window().clear(sf::Color(100, 120, 150));
 	//Set the camera view port to be the centered on the player if it's far enough right
 	Vec2D& pPos = m_player->getComponent<CTransform>().pos;
 	float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
