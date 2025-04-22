@@ -1,4 +1,5 @@
 #include "EntityManager.h"
+#include <algorithm>
 EntityManager::EntityManager() = default;
 
 void EntityManager::removeDeadEntities(EntityVec& entities)

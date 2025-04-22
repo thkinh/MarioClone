@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 class Animation
 {
+  sf::Texture m_default;
 	sf::Sprite m_sprite;
 	size_t m_Framecount = 1;
 	size_t m_currentFrame = 0;

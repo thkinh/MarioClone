@@ -43,7 +43,7 @@ void Assets::LoadAssets(const std::string& name)
 void Assets::addFont(const std::string& name, const std::string& path)
 {
     sf::Font font;
-    if (font.loadFromFile(path))
+    if (font.openFromFile(path))
     {
         std::cout << "Loaded font from " << path << std::endl;
         m_font[name] = font;

@@ -6,17 +6,19 @@
 
 void Scene_Menu::init()
 {
-	registerAction(sf::Keyboard::Space, "PLAY");
+	registerAction(sf::Keyboard::Scancode::Enter, "PLAY");
 	// Load the font during initialization
 
 	Menu_font = m_game->assets().getFont("MagicRetro");
-	m_MenuText.setFont(Menu_font);
-	m_MenuText.setCharacterSize(34);
-	m_MenuText.setString("\n\n\t\tMARIO	CLONE 2099");
+	//m_MenuText.setFont(Menu_font);
+	m_MenuText.setCharacterSize(30);
+  m_MenuText.setPosition({10.f, 50.f});
+	m_MenuText.setString("MARIO	CLONE 2099");
 }
 
 Scene_Menu::Scene_Menu(GameEngine* gameEngine):
-	Scene(gameEngine)
+	Scene(gameEngine),
+	m_MenuText(Menu_font)
 {
 	init();
 }

@@ -5,7 +5,7 @@
 #include "Vec2D.h"
 class GameEngine;
 
-typedef std::map<int, std::string> ActionMap;
+typedef std::map<sf::Keyboard::Scancode, std::string> ActionMap;
 
 class Scene
 {
@@ -31,7 +31,7 @@ public:
 
 	virtual void doAction(const Action& action);
 	//void simulate(const size_t frames);
-	void registerAction(int inputKey, const std::string& actionName);
+	void registerAction(sf::Keyboard::Scancode inputKey, const std::string& actionName);
 
 	size_t width() const;
 	size_t height() const;
