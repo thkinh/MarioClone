@@ -13,7 +13,7 @@ You should have the following dependencies installed:
 - `git`
 - `g++` (or any C++ compiler)
 - `make`
-- SFML library
+- SFML library (3.0)
 
 Steps:
 1. Clone the repository:
