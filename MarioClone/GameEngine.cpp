@@ -10,7 +10,7 @@ void GameEngine::init(const std::string& path)
 {
 	//Add the function load from file for assets later, so that we dont have to call add texture, add animation,etc
 	m_assets.LoadAssets(path);
-	m_window.create(sf::VideoMode({900, 600}), "Definitely not Mario", sf::Style::Close);
+	m_window.create(sf::VideoMode({1366, 768}), "MarioClone", sf::Style::Close);
 	m_window.setFramerateLimit(60);
 	ChangeScene("MENU", std::make_shared<Scene_Menu>(this));
 }

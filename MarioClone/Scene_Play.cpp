@@ -5,20 +5,21 @@
 #include "Physics.h"
 
 Scene_Play::Scene_Play(GameEngine* g, const std::string& levelPath):
-  Scene(g), m_levelpath(levelPath), m_gridText(m_game->assets().getFont("MagiRetro"))
+  Scene(g), m_levelpath(levelPath), m_gridText(m_game->assets().getFont("Arial"))
 {
   init(m_levelpath);
 }
 void Scene_Play::init(const std::string& levelPath)
 {
-  Play_Font = m_game->assets().getFont("MagicRetro");
+  Play_Font = m_game->assets().getFont("Arial");
   registerAction(sf::Keyboard::Scancode::P, "PAUSE");
   registerAction(sf::Keyboard::Scancode::Escape, "QUIT");
   registerAction(sf::Keyboard::Scancode::T, "TOGGLE_TEXTURE");
   registerAction(sf::Keyboard::Scancode::C, "TOGGLE_COLLISION");
   registerAction(sf::Keyboard::Scancode::G, "TOGGLE_GRID"); 
   registerAction(sf::Keyboard::Scancode::W, "UP"); 
-  registerAction(sf::Keyboard::Scancode::Space, "UP"); registerAction(sf::Keyboard::Scancode::A, "LEFT"); 
+  registerAction(sf::Keyboard::Scancode::Space, "UP");
+  registerAction(sf::Keyboard::Scancode::A, "LEFT"); 
   registerAction(sf::Keyboard::Scancode::S, "DOWN");
   registerAction(sf::Keyboard::Scancode::D, "RIGHT");
   registerAction(sf::Keyboard::Scancode::LShift, "RUN");
@@ -29,8 +30,8 @@ void Scene_Play::init(const std::string& levelPath)
   LoadLevel(levelPath);
   m_gridText.setFont(Play_Font);
   SpawnPlayer();
-  //std::cout << "Current player position: (" << m_player->getComponent<CTransform>().pos.x << ", " 
-  //	<< m_player->getComponent<CTransform>().pos.y << ")\n";
+  std::cout << "Current player position: (" << m_player->getComponent<CTransform>().pos.x << ", " 
+            << m_player->getComponent<CTransform>().pos.y << ")\n";
 }
 
 Vec2D Scene_Play::gridToMidPixel(float gridx, float gridy, std::shared_ptr<Entity> entity)
@@ -54,6 +55,12 @@ void Scene_Play::LoadLevel(const std::string& filename)
   std::string var;
   while (file>>var)
   {
+    if (var == "#")
+    {
+      std::string tmp="";
+      std::getline(file, tmp);
+      std::cout << "Skipping: " << tmp << "\n";
+    }
     if (var == "Tile")
     {
       int x, y;
@@ -69,8 +76,7 @@ void Scene_Play::LoadLevel(const std::string& filename)
     }
   }
   std::cout << "Loaded player\n";
-  std::cout << "X,Y: "<< m_playerConfig.X << "," << m_playerConfig.Y << "\n";
-  std::cout << "SPEED: "<< m_playerConfig.SPEED << "/" << m_playerConfig.MAXSPEED << "\n";
+  //std::cout << "X,Y: "<< m_playerConfig.X << "," << m_playerConfig.Y << "\n";
   file.close();
 }
 
@@ -258,19 +264,22 @@ void Scene_Play::sLifeSpan()
 void Scene_Play::sAnimation()
 {
   int& playerstate = m_player->getComponent<CState>().state;
-  CAnimation& player_animation = m_player->getComponent<CAnimation>();
+  Animation& player_animation = m_player->getComponent<CAnimation>().anmt;
 
-  if (playerstate == 1  || playerstate == 0) // just land on ground
+  if (playerstate == 1) // just land on ground
   {
-    player_animation.anmt = m_game->assets().getAnimation("Stand");
+    player_animation = m_game->assets().getAnimation("Stand");
   }
   else if (playerstate == 3 || playerstate == 2)
   {
-    player_animation.anmt = m_game->assets().getAnimation("Jump");
+    player_animation = m_game->assets().getAnimation("Jump");
   }
   else if (playerstate == 4)
   {
-    player_animation.anmt = m_game->assets().getAnimation("Run");
+    if(&player_animation != &m_game->assets().getAnimation("Run"))
+    {
+      player_animation = m_game->assets().getAnimation("Run");
+    }
   }
   for (auto& e : m_entitiesManger.getEntity())
   {
@@ -292,7 +301,7 @@ void Scene_Play::update()
 
 void Scene_Play::sRender () 
 {
-  m_game->window().clear(sf::Color(100, 120, 150));
+  m_game->window().clear(sf::Color(6,3,3));
   //Set the camera view port to be the centered on the player if it's far enough right
   Vec2D& pPos = m_player->getComponent<CTransform>().pos;
   float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
