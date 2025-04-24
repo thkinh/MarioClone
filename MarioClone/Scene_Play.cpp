@@ -5,20 +5,21 @@
 #include "Physics.h"
 
 Scene_Play::Scene_Play(GameEngine* g, const std::string& levelPath):
-  Scene(g), m_levelpath(levelPath), m_gridText(m_game->assets().getFont("MagiRetro"))
+  Scene(g), m_levelpath(levelPath), m_gridText(m_game->assets().getFont("Arial"))
 {
   init(m_levelpath);
 }
 void Scene_Play::init(const std::string& levelPath)
 {
-  Play_Font = m_game->assets().getFont("MagicRetro");
+  Play_Font = m_game->assets().getFont("Arial");
   registerAction(sf::Keyboard::Scancode::P, "PAUSE");
   registerAction(sf::Keyboard::Scancode::Escape, "QUIT");
   registerAction(sf::Keyboard::Scancode::T, "TOGGLE_TEXTURE");
   registerAction(sf::Keyboard::Scancode::C, "TOGGLE_COLLISION");
   registerAction(sf::Keyboard::Scancode::G, "TOGGLE_GRID"); 
   registerAction(sf::Keyboard::Scancode::W, "UP"); 
-  registerAction(sf::Keyboard::Scancode::Space, "UP"); registerAction(sf::Keyboard::Scancode::A, "LEFT"); 
+  registerAction(sf::Keyboard::Scancode::Space, "UP");
+  registerAction(sf::Keyboard::Scancode::A, "LEFT"); 
   registerAction(sf::Keyboard::Scancode::S, "DOWN");
   registerAction(sf::Keyboard::Scancode::D, "RIGHT");
   registerAction(sf::Keyboard::Scancode::LShift, "RUN");
@@ -29,8 +30,8 @@ void Scene_Play::init(const std::string& levelPath)
   LoadLevel(levelPath);
   m_gridText.setFont(Play_Font);
   SpawnPlayer();
-  //std::cout << "Current player position: (" << m_player->getComponent<CTransform>().pos.x << ", " 
-  //	<< m_player->getComponent<CTransform>().pos.y << ")\n";
+  std::cout << "Current player position: (" << m_player->getComponent<CTransform>().pos.x << ", " 
+            << m_player->getComponent<CTransform>().pos.y << ")\n";
 }
 
 Vec2D Scene_Play::gridToMidPixel(float gridx, float gridy, std::shared_ptr<Entity> entity)
@@ -54,6 +55,12 @@ void Scene_Play::LoadLevel(const std::string& filename)
   std::string var;
   while (file>>var)
   {
+    if (var == "#")
+    {
+      std::string tmp="";
+      std::getline(file, tmp);
+      std::cout << "Skipping: " << tmp << "\n";
+    }
     if (var == "Tile")
     {
       int x, y;
@@ -69,8 +76,8 @@ void Scene_Play::LoadLevel(const std::string& filename)
     }
   }
   std::cout << "Loaded player\n";
-  std::cout << "X,Y: "<< m_playerConfig.X << "," << m_playerConfig.Y << "\n";
-  std::cout << "SPEED: "<< m_playerConfig.SPEED << "/" << m_playerConfig.MAXSPEED << "\n";
+  std::cout << "Player Jump Speed: "<< m_playerConfig.JUMP << "/" << m_playerConfig.MAXSPEED << "\n";
+  std::cout << "Player Gravity: "<< m_playerConfig.GRAVITY << "\n"; 
   file.close();
 }
 
@@ -83,7 +90,7 @@ void Scene_Play::SpawnPlayer()
   m_player->addComponent<CGravity>(m_playerConfig.GRAVITY);
   m_player->addComponent<CState>();
   m_player->addComponent<CAnimation>();
-  m_player->getComponent<CTransform>().scale = {2.5f,2.5f};
+  m_player->getComponent<CTransform>().scale = {1.5f,1.5f}; //Player size = 48
   m_player->getComponent<CAnimation>().anmt = m_game->assets().getAnimation("Stand");
   std::cout << "Spawned player\n";
 
@@ -102,7 +109,7 @@ void Scene_Play::SpawnTile(float gridx, float gridy)
   tile->addComponent<CBoundingBox>(Vec2D(m_gridsize.x, m_gridsize.y));
   tile->addComponent<CTransform>(gridToMidPixel(gridx,gridy,tile));
   //std::cout << "Spawned a tile at << (" << tile->getComponent<CTransform>().pos.x << "," << tile->getComponent<CTransform>().pos.y << ")\n";
-  tile->getComponent<CTransform>().scale = Vec2D(1.34f, 1.34f);
+  tile->getComponent<CTransform>().scale = Vec2D(1.34f, 1.34f); //Block size = 64
   tile->addComponent<CAnimation>();
   tile->getComponent<CAnimation>().anmt = m_game->assets().getAnimation("TileDust");
 }
@@ -136,43 +143,52 @@ void Scene_Play::sMovement()
 {
   Vec2D player_velocity(0, m_player->getComponent<CTransform>().velocity.y);
   int& current_state = m_player->getComponent<CState>().state;
-  float player_jump_speed = 12;
-  player_jump_speed -= (current_state == 3) ? 6 : 0;
+  Vec2D& playerScale = m_player->getComponent<CTransform>().scale;
+
+  m_player->getComponent<CState>().walk = false;
+  int player_jump_speed = 12;
+  player_jump_speed -= (current_state == 3)? 6 : 0;
+  
+  if(player_velocity.y > 0)
+  {
+    current_state = 2;
+  }
   if (m_player->getComponent<CInput>().up == false )
   {
-    //If player just landed on the ground, only allow them to jump when they release the button
-    if (current_state == 1)
-    {
-      current_state = 0;
-    }
-    //Release the button at mid air won't let them moving at the y direction anymore
+    //Release the button at mid air won't let them move up the y direction anymore
     if (current_state == 3)
     {
       current_state = 2;
     }
+    //If player just landed on the ground, only allow them to jump when they release the button
+    else if (current_state == 1)
+    {
+      current_state = 0;
+    }
   }
-  if (m_player->getComponent<CInput>().up && current_state!=2 && current_state != 1)
+  else if (m_player->getComponent<CInput>().up && current_state!=2 && current_state != 1)
   {
     player_velocity.y -= player_jump_speed;
     current_state = 3; //jumping
-    if (player_velocity.y <= -30)
+    if (player_velocity.y <= -24)
     {
       current_state = 2; //reached its maxspeed, falling
     }
   }
-  if (m_player->getComponent<CInput>().right)
+  if (m_player->getComponent<CInput>().right == true)
   {
     player_velocity.x = 7;
-    m_player->getComponent<CTransform>().scale.x = 2.5;
+    m_player->getComponent<CState>().walk = true;
+    playerScale.x = std::abs( playerScale.x );
   }
-  if (m_player->getComponent<CInput>().left)
+  else if (m_player->getComponent<CInput>().left == true)
   {
     player_velocity.x = -7;
-    m_player->getComponent<CTransform>().scale.x = -2.5;
+    m_player->getComponent<CState>().walk = true;
+    playerScale.x = -std::abs(playerScale.x);
   }
   if (m_player->getComponent<CInput>().running == true)
   {
-    //current_state = 4; // player is running
     player_velocity.x *= 1.55;
   }
   m_player->getComponent<CTransform>().velocity = player_velocity;
@@ -257,20 +273,31 @@ void Scene_Play::sLifeSpan()
 
 void Scene_Play::sAnimation()
 {
-  int& playerstate = m_player->getComponent<CState>().state;
-  CAnimation& player_animation = m_player->getComponent<CAnimation>();
+  auto& playerstate = m_player->getComponent<CState>();
+  Animation& player_animation = m_player->getComponent<CAnimation>().anmt;
+  Vec2D& playerVelo = m_player->getComponent<CTransform>().velocity;
 
-  if (playerstate == 1  || playerstate == 0) // just land on ground
+  if (playerstate.walk == true)
   {
-    player_animation.anmt = m_game->assets().getAnimation("Stand");
+    if(player_animation.getName() != "Run") 
+    {
+      player_animation = m_game->assets().getAnimation("Run");
+    }
   }
-  else if (playerstate == 3 || playerstate == 2)
+
+  if ( playerstate.walk == false)  // just land on ground
   {
-    player_animation.anmt = m_game->assets().getAnimation("Jump");
+    if (player_animation.getName() != "Stand")
+    {
+      player_animation = m_game->assets().getAnimation("Stand");
+    }
   }
-  else if (playerstate == 4)
+  else if (playerstate.state == 3 || playerstate.state == 2)
   {
-    player_animation.anmt = m_game->assets().getAnimation("Run");
+    if(&player_animation != &m_game->assets().getAnimation("Jump"))
+    {
+      player_animation = m_game->assets().getAnimation("Jump");
+    }
   }
   for (auto& e : m_entitiesManger.getEntity())
   {
@@ -292,7 +319,7 @@ void Scene_Play::update()
 
 void Scene_Play::sRender () 
 {
-  m_game->window().clear(sf::Color(100, 120, 150));
+  m_game->window().clear(sf::Color(6,3,3));
   //Set the camera view port to be the centered on the player if it's far enough right
   Vec2D& pPos = m_player->getComponent<CTransform>().pos;
   float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);

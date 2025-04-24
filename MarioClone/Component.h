@@ -97,8 +97,8 @@ public:
 	//1 = just land on ground, cannot jump
 	//2 = falling
 	//3 = airing
-	//4 = running
 	int state = 0;
+  bool walk = true;
 	CState() {};
 	CState(int s) :state(s) {}
 };
