@@ -1,4 +1,4 @@
-# MarioClone
+# MarioClone 
 
 # Overview
 - This project is an assignment from a C++ game programing free course that I learnt on youtube.
@@ -36,7 +36,7 @@ Steps:
 
    This will automatically build the project and run the game.
 
-### On Windows
+### On Windows (Old version, depracated)
 
 1. **Install dependencies:**
    - Install [Git for Windows](https://git-scm.com/). 
