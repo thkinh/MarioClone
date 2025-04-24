@@ -1,12 +1,15 @@
 # Texture TextStand Assets/Textures/LongMage.png 
 # Texture TextStand Assets/Textures/LongMage.png 
-Texture TextJump Assets/Textures/JumpMage.png
-Texture TextRun Assets/Textures/Run.png  
+# Texture TextJump Assets/Textures/JumpMage.png
+# Texture TextRun Assets/Textures/Run.png  
+Texture TextStand Assets/Textures/Pixel/Free/Chars/Ninja_frog/Idle32.png
+Texture TextJump Assets/Textures/Pixel/Free/Chars/Ninja_frog/Jump32.png
+Texture TextRun Assets/Textures/Pixel/Free/Chars/Ninja_frog/Run32.png
 Texture TextTile Assets/Textures/Terrain.png
 Texture TextDust Assets/Textures/Dust.png
 Font MagicRetro Assets/Fonts/MagicRetro.ttf
 Font Arial Assets/Fonts/Arial.ttf
-Animation Stand TextStand 12 0
-Animation Jump TextJump 6 0
+Animation Stand TextStand 11 0
+Animation Jump TextJump 1 0
+Animation Run TextRun 12 0
 Animation TileDust TextDust 1 0
-Animation Run TextRun 4 0
