@@ -63,7 +63,7 @@ void Assets::addFont(const std::string& name, const std::string& path)
 
 void Assets::addTexture(const std::string& name, const std::string& path)
 {
-  m_texture[name].loadFromFile(path);
+  (void) m_texture[name].loadFromFile(path);
   std::cout << "Loaded this texture " << name << " from " << path << "\n";
 }
 

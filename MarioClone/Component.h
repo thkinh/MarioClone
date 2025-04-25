@@ -99,6 +99,7 @@ public:
 	//3 = airing
 	int state = 0;
   bool walk = true;
+  int coolDown = 0;
 	CState() {};
 	CState(int s) :state(s) {}
 };

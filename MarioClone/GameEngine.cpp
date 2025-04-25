@@ -8,10 +8,11 @@ GameEngine::GameEngine(const std::string& path)
 
 void GameEngine::init(const std::string& path)
 {
+  m_fps = 60;
 	//Add the function load from file for assets later, so that we dont have to call add texture, add animation,etc
 	m_assets.LoadAssets(path);
 	m_window.create(sf::VideoMode({900, 684}), "MarioClone", sf::Style::Close);
-	m_window.setFramerateLimit(60);
+	m_window.setFramerateLimit(m_fps);
 	ChangeScene("MENU", std::make_shared<Scene_Menu>(this));
 }
 
@@ -81,7 +82,7 @@ void GameEngine::ChangeScene(const std::string& sceneName, std::shared_ptr<Scene
 	m_currentScene = sceneName;
 }
 
-
+// sfml 2.0
 //void GameEngine::sUserInput()
 //{
 //	sf::Event event;
@@ -138,6 +139,11 @@ void GameEngine::sUserInput(){
             }
         }
     }
+}
+
+size_t GameEngine::getFPS() const
+{
+  return m_fps;
 }
 
 void GameEngine::quit()

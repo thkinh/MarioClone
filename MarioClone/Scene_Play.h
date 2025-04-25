@@ -19,7 +19,8 @@ protected:
 	
 	bool m_drawTexture = true;
 	bool m_drawCollision = true;
-	bool drawGrid = false;
+	bool m_drawGrid = false;
+  bool m_drawFPS = false;
 
 	const Vec2D m_gridsize = { 64,64 };
 	sf::Text m_gridText;
@@ -42,5 +43,5 @@ public:
 	void sRender() override;
 	void update() override;
 	void sDoAction(const Action& action) override;
-	void onEnd();
+  void onEnd() override;
 };
