@@ -15,8 +15,9 @@ class CTransform : public Component
 public:
 	Vec2D pos = { 0.0f, 0.0f };
 	Vec2D prevPos = {0.0f, 0.0f};
-	Vec2D scale = { 1.0f, 1.0f };
 	Vec2D velocity = { 0.0,0.0 };
+  Vec2D prevVelocity = {0.0, 0.0};
+	Vec2D scale = { 1.0f, 1.0f };
 	float angle = 0;
 	
 	CTransform() {};
@@ -93,12 +94,13 @@ public:
 class CState : public Component
 {
 public:
-	//0 = on ground, can jump
+	//0 = nothing
 	//1 = just land on ground, cannot jump
 	//2 = falling
 	//3 = airing
 	int state = 0;
   bool walk = true;
+  int coolDown = 0;
 	CState() {};
 	CState(int s) :state(s) {}
 };

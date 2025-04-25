@@ -36,7 +36,6 @@ public:
 	size_t width() const;
 	size_t height() const;
 	size_t CurrentFrame() const;
-
 	//bool hasEnded() const;
 	const ActionMap& getActionMap() const;
 

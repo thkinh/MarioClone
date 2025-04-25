@@ -6,11 +6,12 @@
 
 void Scene_Menu::init()
 {
+  std::cout << "\n====SceneMenu====\n";
 	registerAction(sf::Keyboard::Scancode::Enter, "PLAY");
 	// Load the font during initialization
 
 	Menu_font = m_game->assets().getFont("MagicRetro");
-	//m_MenuText.setFont(Menu_font);
+	m_MenuText.setFont(Menu_font);
 	m_MenuText.setCharacterSize(30);
   m_MenuText.setPosition({10.f, 50.f});
 	m_MenuText.setString("MARIO	CLONE 2099");

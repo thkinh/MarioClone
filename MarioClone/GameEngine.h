@@ -13,6 +13,7 @@ protected:
 	Assets m_assets;
 	std::string m_currentScene;
 	SceneMap m_scenesMap;
+  size_t m_fps = 60;
 	size_t m_simulationSpeed = 1;
 	bool m_running = true;
 
@@ -32,7 +33,7 @@ public:
 	sf::RenderWindow& window();
 	Assets assets() const;
 	bool isRunning();
-
+  size_t getFPS() const;
 
 };
  
