@@ -56,7 +56,7 @@ Tile 24 4
 Tile 25 4
 Tile 15 5
 Tile 15 6
-Tile 15 7
+Tile 15 3
 Tile 28 3
 Tile 28 4
 Tile 28 5
