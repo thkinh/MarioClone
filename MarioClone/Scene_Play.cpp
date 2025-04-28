@@ -4,6 +4,8 @@
 #include <iostream>
 #include "Physics.h"
 
+size_t frame = 0;
+
 Scene_Play::Scene_Play(GameEngine* g, const std::string& levelPath):
   Scene(g), m_levelpath(levelPath), m_gridText(m_game->assets().getFont("Arial"))
 {
@@ -244,12 +246,32 @@ void Scene_Play::sCollision()
       Vec2D Pre_overlap = Physics::GetPreviousOverLap(m_player,t);
       //Overlap right here
       //Check the direction by looking at the frame before
-      if (Pre_overlap.y >= 0)
+      if (Pre_overlap.y < 0)
+      {
+        //This means the overlap caused by the "x" direction
+        if (PlayerPos.pos.x >= PlayerPos.prevPos.x)
+        {
+          //std::cout << "\nRight-->\t frame:" << frame << "\n";
+          //this means the overlap occured by moving from left to right
+          m_player->getComponent<CTransform>().pos.x += overlap.x;
+          //the overlap happened, so overlap.y or overlap.x is always negative
+        }
+        else if (PlayerPos.pos.x < PlayerPos.prevPos.x)
+        {			
+          //std::cout << "\n<--Left\t frame:" << frame << "\n";
+          //this means the overlap occured by moving from right to left
+          m_player->getComponent<CTransform>().pos.x -= overlap.x;
+          //the overlap happened, so overlap.y or overlap.x is always negative
+        }
+      }
+      else if (Pre_overlap.x < 0)
       {
         //This means the overlap caused by the "y" direction
         if (PlayerPos.pos.y >= PlayerPos.prevPos.y)
         {
+          //this means the overlap occured by the player moving from right to left
           //this means the overlap occured by the player moving down_ward
+          //std::cout << "\nUp!!\t frame:" << frame << "\n";
           m_player->getComponent<CTransform>().pos.y += overlap.y;
           //the overlap happened, so overlap.y or overlap,x is always negative
           m_player->getComponent<CTransform>().velocity.y = 0; 
@@ -265,22 +287,6 @@ void Scene_Play::sCollision()
           //the overlap happened, so overlap.y or overlap,x is always negative
           m_player->getComponent<CTransform>().velocity.y = 0;
           m_player->getComponent<CState>().state = 2;
-        }
-      }
-      else if (Pre_overlap.x >= 0)
-      {
-        //This means the overlap caused by the "x" direction
-        if (PlayerPos.pos.x > PlayerPos.prevPos.x)
-        {
-          //this means the overlap occured by the player moving from left to right
-          m_player->getComponent<CTransform>().pos.x += overlap.x;
-          //the overlap happened, so overlap.y or overlap,x is always negative
-        }
-        else if (PlayerPos.pos.x < PlayerPos.prevPos.x)
-        {			
-          //this means the overlap occured by the player moving from right to left
-          m_player->getComponent<CTransform>().pos.x -= overlap.x;
-          //the overlap happened, so overlap.y or overlap,x is always negative
         }
       }
     }
@@ -356,6 +362,7 @@ void Scene_Play::update()
   sCollision();
   sAnimation();
   sRender();
+  ++frame;
 }
 
 void Scene_Play::sRender () 
