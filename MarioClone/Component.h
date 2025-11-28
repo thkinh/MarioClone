@@ -98,9 +98,14 @@ public:
 	//1 = just land on ground, cannot jump
 	//2 = falling
 	//3 = airing
-	int state = 0;
-  bool walk = true;
+	enum STATE{
+		STANDING,
+		JUMPING,
+		FALLING,
+	};
+	STATE state = STANDING;
   int coolDown = 0;
+	bool running = false;
 	CState() {};
-	CState(int s) :state(s) {}
+	CState(STATE s) :state(s) {}
 };

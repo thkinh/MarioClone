@@ -1,5 +1,7 @@
 #include "Scene_Play.h"
+#include "Component.h"
 #include "GameEngine.h"
+#include <cinttypes>
 #include <fstream>
 #include <iostream>
 #include "Physics.h"
@@ -154,67 +156,52 @@ void Scene_Play::sDoAction(const Action& action)
 void Scene_Play::sMovement()
 {
   Vec2D player_velocity(0, m_player->getComponent<CTransform>().velocity.y);
-  int& current_state = m_player->getComponent<CState>().state;
-  current_state = 0;
-  Vec2D& playerScale = m_player->getComponent<CTransform>().scale;
-
   int player_jump_speed = 12;
-  
-  if(m_player->getComponent<CInput>().action1 == true)
-  {
-    m_player->getComponent<CState>().coolDown -= 1;
-    if(m_player->getComponent<CState>().coolDown <= 0)
-    {
-      SpawnBullet();
-      m_player->getComponent<CState>().coolDown = 10;
-    }
-  }
-  if(m_player->getComponent<CInput>().action1 == false)
-  {
-    m_player->getComponent<CState>().coolDown = 1;
-  }
+  CState::STATE& current_state = m_player->getComponent<CState>().state;
+  Vec2D& playerScale = m_player->getComponent<CTransform>().scale;
+  CInput& playerInput = m_player->getComponent<CInput>();
+  bool& isRunning = m_player -> getComponent<CState>().running;
 
-  if (m_player->getComponent<CInput>().up == false )
-  {
-    //Release the button at mid air won't let them move up the y direction anymore
-    if (player_velocity.y < 0)
-    {
-      current_state = 2;
-      m_player->getComponent<CInput>().up = false;
-    }
-    //If player just landed on the ground, only allow them to jump when they release the button
-    else if (player_velocity.y == 0)
-    {
-    }
-  }
-  Vec2D& prevVelo = m_player->getComponent<CTransform>().prevVelocity;
-  if(player_velocity.y > 0 || player_velocity.y <= -24 || player_velocity.y > prevVelo.y)
-  {
-    m_player->getComponent<CInput>().up = false; 
-    current_state = 2;
-  }
-  else if (m_player->getComponent<CInput>().up && player_velocity.y <= 0) 
-  {
-    //std::cout << "\nJump with the speed: " << player_velocity.y << "/" <<player_jump_speed;
-    if (player_velocity.y > -24)
-    {
-      current_state = 2;
-      player_jump_speed -= (player_velocity.y < 0)? 6 : 0;
-      player_velocity.y -= player_jump_speed;
-      //std::cout << "\nMaxSpeed";
-    }
+  switch(current_state){
+    case CState::STANDING:
+      isRunning = false;
+      if(playerInput.up)
+      {
+        current_state = CState::JUMPING;
+        player_jump_speed -= (player_velocity.y < 0)? 14 : 0;
+        player_velocity.y -= player_jump_speed;
+      }
+      break;
+    case CState::JUMPING:
+      if(!playerInput.up || player_velocity.y < -21 || player_velocity.y >= 0)
+      {
+        current_state = CState::FALLING;
+        player_velocity.y += 1.5;
+      }
+      else {
+        current_state = CState::JUMPING;
+        player_jump_speed -= (player_velocity.y < 0)? 6 : 0; //Jump for 2 frames
+        player_velocity.y -= player_jump_speed;
+      }
+      break;
+    case CState::FALLING:
+      if(player_velocity.y == 0 && playerInput.up == false)
+      {
+        current_state = CState::STANDING;
+      }
+      break;
   }
 
   if (m_player->getComponent<CInput>().right == true)
   {
     player_velocity.x = 7;
-    current_state = (current_state == 2)? 2:4;
+    isRunning = current_state == CState::JUMPING ? false : true;
     playerScale.x = std::abs( playerScale.x );
   }
   else if (m_player->getComponent<CInput>().left == true)
   {
     player_velocity.x = -7;
-    current_state = (current_state == 2)? 2:4;
+    isRunning = current_state == CState::JUMPING ? false : true;
     playerScale.x = -std::abs(playerScale.x);
   }
   if (m_player->getComponent<CInput>().running == true)
@@ -269,16 +256,15 @@ void Scene_Play::sCollision()
         //This means the overlap caused by the "y" direction
         if (PlayerPos.pos.y >= PlayerPos.prevPos.y)
         {
-          //this means the overlap occured by the player moving from right to left
           //this means the overlap occured by the player moving down_ward
           //std::cout << "\nUp!!\t frame:" << frame << "\n";
           m_player->getComponent<CTransform>().pos.y += overlap.y;
           //the overlap happened, so overlap.y or overlap,x is always negative
           m_player->getComponent<CTransform>().velocity.y = 0; 
-          if (m_player->getComponent<CState>().state == 0)
-          {
-            m_player->getComponent<CState>().state = 1;
-          }
+          //if (m_player->getComponent<CState>().state == 0)
+          //{
+          //  m_player->getComponent<CState>().state = 1;
+          //}
         }
         else if (PlayerPos.pos.y < PlayerPos.prevPos.y)
         {
@@ -286,7 +272,7 @@ void Scene_Play::sCollision()
           m_player->getComponent<CTransform>().pos.y -= overlap.y;
           //the overlap happened, so overlap.y or overlap,x is always negative
           m_player->getComponent<CTransform>().velocity.y = 0;
-          m_player->getComponent<CState>().state = 2;
+          //m_player->getComponent<CState>().state = 2;
         }
       }
     }
@@ -325,21 +311,21 @@ void Scene_Play::sAnimation()
   Animation& player_animation = m_player->getComponent<CAnimation>().anmt;
   Vec2D& playerVelo = m_player->getComponent<CTransform>().velocity;
 
-  if (playerstate.state == 4)
+  if (playerstate.running)
   {
     if(player_animation.getName() != "Run") 
     {
       player_animation = m_game->assets().getAnimation("Run");
     }
   }
-  if ( playerstate.state == 1)  // just land on ground
+  if (!playerstate.running && playerstate.state == CState::STANDING)  // just land on ground
   {
     if (player_animation.getName() != "Stand")
     {
       player_animation = m_game->assets().getAnimation("Stand");
     }
   }
-  else if (playerstate.state == 2)
+  else if (playerstate.state == CState::JUMPING)
   {
     if(player_animation.getName() != "Jump")
     {
