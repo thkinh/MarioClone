@@ -180,7 +180,7 @@ void Scene_Play::sMovement()
       }
       else {
         current_state = CState::JUMPING;
-        player_jump_speed -= (player_velocity.y < 0)? 6 : 0; //Jump for 2 frames
+        player_jump_speed -= (player_velocity.y < 0)? 6 : 0; //Jump for 3 frames
         player_velocity.y -= player_jump_speed;
       }
       break;
@@ -261,10 +261,6 @@ void Scene_Play::sCollision()
           m_player->getComponent<CTransform>().pos.y += overlap.y;
           //the overlap happened, so overlap.y or overlap,x is always negative
           m_player->getComponent<CTransform>().velocity.y = 0; 
-          //if (m_player->getComponent<CState>().state == 0)
-          //{
-          //  m_player->getComponent<CState>().state = 1;
-          //}
         }
         else if (PlayerPos.pos.y < PlayerPos.prevPos.y)
         {
@@ -272,7 +268,6 @@ void Scene_Play::sCollision()
           m_player->getComponent<CTransform>().pos.y -= overlap.y;
           //the overlap happened, so overlap.y or overlap,x is always negative
           m_player->getComponent<CTransform>().velocity.y = 0;
-          //m_player->getComponent<CState>().state = 2;
         }
       }
     }
